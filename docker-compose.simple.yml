@@ -1,0 +1,48 @@
+version: '3.8'
+
+# Простая конфигурация N8N для быстрого старта
+# Использует SQLite вместо PostgreSQL для простоты
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n_simple
+    restart: unless-stopped
+    environment:
+      # Timezone Configuration
+      - GENERIC_TIMEZONE=Europe/Moscow
+      - TZ=Europe/Moscow
+      
+      # N8N Configuration
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - N8N_EDITOR_BASE_URL=http://localhost:5678
+      
+      # Security Configuration
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-default-encryption-key-change-me}
+      - N8N_USER_FOLDER=/home/node/.n8n
+      - N8N_SECURE_COOKIE=false
+      
+      # Performance Configuration
+      - EXECUTIONS_PROCESS=main
+      - EXECUTIONS_MODE=regular
+      - N8N_METRICS=true
+      - N8N_LOG_LEVEL=info
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./custom:/home/node/.n8n/custom
+      - ./backups:/home/node/.n8n/backups
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  n8n_data:
+    driver: local 
